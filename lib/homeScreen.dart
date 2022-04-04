@@ -117,12 +117,12 @@ class _HomeScreenState extends State<HomeScreen>{
         print(responce.statusCode);
       }
     });
-
-
-
-
   }
-  Widget ProvidersList(List<dynamic> list){
+
+  String serviceId = "";
+  String ServiceName = "";
+
+  Widget ProvidersList(List<dynamic> list, String serviceId){
     return ListView.builder(
       itemCount: list.length,
       itemBuilder: (BuildContext context,int index){
@@ -134,54 +134,59 @@ class _HomeScreenState extends State<HomeScreen>{
                 _ProvidersContainerheight = 0;
               });
             },
-            child: Card(
-              margin: EdgeInsets.symmetric(vertical: 10),
-              elevation: 10,
+            child: GestureDetector(
+              onTap: (){
+                makeRequest(onlineProviders[index]["id"], serviceId);
+              },
+              child: Card(
+                margin: EdgeInsets.symmetric(vertical: 10),
+                elevation: 10,
 
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              color: Colors.greenAccent,
-              child:Padding(
-                padding: EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                color: Colors.greenAccent,
+                child:Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
 
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Icon(Icons.account_circle_rounded, size: MediaQuery.of(context).size.height/18,),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Icon(Icons.account_circle_rounded, size: MediaQuery.of(context).size.height/18,),
 
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: Rating(value: double.parse(onlineProviders[index]["rating"])),
-                        ),
-                      ],
-                    ),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: Rating(value: double.parse(onlineProviders[index]["rating"])),
+                          ),
+                        ],
+                      ),
 
 
-                    Text(onlineProviders[index]["first_name"], style: TextStyle(
-                        fontSize: 15
-                    ),),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text("Price: ${onlineProviders[index]["service_price"]} AED", style: TextStyle(
+                      Text(onlineProviders[index]["first_name"], style: TextStyle(
+                          fontSize: 15
+                      ),),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text("Price: ${onlineProviders[index]["service_price"]} AED", style: TextStyle(
+                                fontWeight: FontWeight.bold
+                            ),),
+                          ),
+                          Text("${double.parse(onlineProviders[index]["distance"].toString().trim()).toStringAsFixed(1)} Km", style: TextStyle(
                               fontWeight: FontWeight.bold
-                          ),),
-                        ),
-                        Text("${double.parse(onlineProviders[index]["distance"].toString().trim()).toStringAsFixed(1)} Km", style: TextStyle(
-                            fontWeight: FontWeight.bold
-                        ),)
-                      ],
-                    )
+                          ),)
+                        ],
+                      )
 
 
 
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -241,6 +246,26 @@ class _HomeScreenState extends State<HomeScreen>{
           //   };
           //   onlineProvidersLocations.add(LocationsOnline);
           // });
+        });
+      }else{
+        print("Fail");
+      }
+    });
+  }
+
+  Future<void> makeRequest (String providerId, String ServiceId) async {
+    Uri uri = Uri.parse(url_help.makeRequest);
+    Map<String, dynamic> body={
+      "provider_id": providerId,
+      "service_type_id": ServiceId,
+      "payment_id": "29",
+      "user_id": "4"
+    };
+    requestHelp.requestPost(uri, body).then((value){
+      if(value.statusCode == 200){
+        print("Done");
+        setState(() {
+          _ProvidersContainerheight = 0;
         });
       }else{
         print("Fail");
@@ -394,6 +419,8 @@ class _HomeScreenState extends State<HomeScreen>{
                               onTap: (){
                                 setState(() {
                                   _Containerheight =0;
+                                  serviceId = _services[index]["id"];
+                                  ServiceName = _services[index]["name"];
                                   getOnlineProviders(_services[index]["id"]).then((value){
                                     _ProvidersContainerheight = 500;
                                   });
@@ -445,7 +472,7 @@ class _HomeScreenState extends State<HomeScreen>{
                           Text("Service Name: ", style: TextStyle(
                             fontSize: 15
                           ),),
-                          Text("Car Wash",style: TextStyle(
+                          Text(ServiceName,style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 15
                           ),)
@@ -453,7 +480,7 @@ class _HomeScreenState extends State<HomeScreen>{
                       ),
                     ),
                     SizedBox(height: 10,),
-                    Expanded(child: ProvidersList(onlineProviders)),
+                    Expanded(child: ProvidersList(onlineProviders,serviceId)),
                   ],
                 )
 
