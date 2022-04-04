@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:lammah_client/rating.dart';
 
 import '../Helper/request_helper.dart';
@@ -52,23 +54,23 @@ class _HomeScreenState extends State<HomeScreen>{
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
 
-    // x = double.parse(Locations[0]["latitude"]);
-    // y = double.parse(Locations[0]["longitude"]);
-    // print("Location: ${LatLng(x,y)}");
-    //
-    // Locations.forEach((element) {
-    //   x = double.parse(element["latitude"]);
-    //   y = double.parse(element["longitude"]);
-    //   print("Location: ${LatLng(x,y)}");
-    //   setState(() {
-    //
-    //     _markers.add(
-    //         Marker(markerId: MarkerId('id-${element["id"]}'), position: LatLng(x,y),infoWindow: InfoWindow(
-    //             title: "${element["first_name"]}"
-    //         ))
-    //     );
-    //   });
-    // });
+    x = double.parse(Locations[0]["latitude"]);
+    y = double.parse(Locations[0]["longitude"]);
+    print("Location: ${LatLng(x,y)}");
+
+    Locations.forEach((element) {
+      x = double.parse(element["latitude"]);
+      y = double.parse(element["longitude"]);
+      print("Location: ${LatLng(x,y)}");
+      setState(() {
+
+        _markers.add(
+            Marker(markerId: MarkerId('id-${element["id"]}'), position: LatLng(x,y),infoWindow: InfoWindow(
+                title: "${element["first_name"]}"
+            ))
+        );
+      });
+    });
   }
 
   request_helper requestHelp = new request_helper();
@@ -225,26 +227,26 @@ class _HomeScreenState extends State<HomeScreen>{
         width: MediaQuery.of(context).size.width,
         child: Stack(
           children: <Widget>[
-            // _center.latitude == 0? Container():
-            // Container(
-            //   height: MediaQuery.of(context).size.height,
-            //   child: GoogleMap(
-            //     onMapCreated: _onMapCreated,
-            //     initialCameraPosition: CameraPosition(
-            //       target: _center,
-            //       zoom: 15.0,
-            //     ),
-            //     myLocationEnabled: true,
-            //     myLocationButtonEnabled: true,
-            //     padding: EdgeInsets.only(top: 15.0.h ,bottom: MediaQuery.of(context).size.height / 8),
-            //     onTap: (click){
-            //       print(click);
-            //     },
-            //     trafficEnabled: true,
-            //
-            //   ),
-            //
-            // ),
+            _center.latitude == 0? Container():
+            Container(
+              height: MediaQuery.of(context).size.height,
+              child: GoogleMap(
+                onMapCreated: _onMapCreated,
+                initialCameraPosition: CameraPosition(
+                  target: _center,
+                  zoom: 15.0,
+                ),
+                myLocationEnabled: true,
+                myLocationButtonEnabled: true,
+                padding: EdgeInsets.only(top: 15.0.h ,bottom: MediaQuery.of(context).size.height / 8),
+                onTap: (click){
+                  print(click);
+                },
+                trafficEnabled: true,
+
+              ),
+
+            ),
             Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
