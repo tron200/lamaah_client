@@ -47,30 +47,10 @@ class _HomeScreenState extends State<HomeScreen>{
   // String earningAsset = "assets/7067452_earnings_provit_income_icon.svg";
   // String commisionAsset = "assets/4308025_capital_earnings_make_making_money_icon.svg";
   LatLng _center = LatLng(lat, lon);
-  static double x = 0;
-  static double y = 0;
   Set<Marker> _markers = {};
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
-
-    x = double.parse(Locations[0]["latitude"]);
-    y = double.parse(Locations[0]["longitude"]);
-    print("Location: ${LatLng(x,y)}");
-
-    Locations.forEach((element) {
-      x = double.parse(element["latitude"]);
-      y = double.parse(element["longitude"]);
-      print("Location: ${LatLng(x,y)}");
-      setState(() {
-
-        _markers.add(
-            Marker(markerId: MarkerId('id-${element["id"]}'), position: LatLng(x,y),infoWindow: InfoWindow(
-                title: "${element["first_name"]}"
-            ))
-        );
-      });
-    });
   }
 
   request_helper requestHelp = new request_helper();
@@ -142,6 +122,78 @@ class _HomeScreenState extends State<HomeScreen>{
 
 
   }
+  Widget ProvidersList(List<dynamic> list){
+    return ListView.builder(
+      itemCount: list.length,
+      itemBuilder: (BuildContext context,int index){
+        return Container(
+          height: MediaQuery.of(context).size.height / 6,
+          child:  GestureDetector(
+            onTap:(){
+              setState(() {
+                _ProvidersContainerheight = 0;
+              });
+            },
+            child: Card(
+              margin: EdgeInsets.symmetric(vertical: 10),
+              elevation: 10,
+
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              color: Colors.greenAccent,
+              child:Padding(
+                padding: EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Icon(Icons.account_circle_rounded, size: MediaQuery.of(context).size.height/18,),
+
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: Rating(value: double.parse(onlineProviders[index]["rating"])),
+                        ),
+                      ],
+                    ),
+
+
+                    Text(onlineProviders[index]["first_name"], style: TextStyle(
+                        fontSize: 15
+                    ),),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text("Price: ${onlineProviders[index]["service_price"]} AED", style: TextStyle(
+                              fontWeight: FontWeight.bold
+                          ),),
+                        ),
+                        Text("${double.parse(onlineProviders[index]["distance"].toString().trim()).toStringAsFixed(1)} Km", style: TextStyle(
+                            fontWeight: FontWeight.bold
+                        ),)
+                      ],
+                    )
+
+
+
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+        );
+
+
+      },
+    );
+  }
+
   Future<void> getAllServices() async {
     Uri url = Uri.parse(url_help.getAllServices);
     Map<String, String> header = {'Content-Type': 'application/json; charset=UTF-8'};
@@ -168,6 +220,34 @@ class _HomeScreenState extends State<HomeScreen>{
   //   });
   // }
   double _height = 0;
+  List<dynamic> onlineProviders = [];
+
+  Future<void> getOnlineProviders(String ServiceId) async{
+    Uri uri = Uri.parse(url_help.getOnlineProviders);
+    Map<String, dynamic> body ={
+      "services_type_id": ServiceId,
+      "user_id": 4
+    };
+    requestHelp.requestPost(uri, body).then((response){
+      if(response.statusCode == 200){
+        print(response.body);
+        setState(() {
+          onlineProviders = json.decode(response.body);
+          // onlineProviders.forEach((element) {
+          //
+          //   LocationsOnline = {
+          //     "latitude" : element["latitude"],
+          //     "longitude" : element["longitude"]
+          //   };
+          //   onlineProvidersLocations.add(LocationsOnline);
+          // });
+        });
+      }else{
+        print("Fail");
+      }
+    });
+  }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -177,23 +257,23 @@ class _HomeScreenState extends State<HomeScreen>{
       setState(() {});
     });
     getCurrentLocation().then((value){
-      x = _locationData.latitude!;
-      y = _locationData.longitude!;
-      print("x: $x y: $y");
+      lat = _locationData.latitude!;
+      lon = _locationData.longitude!;
+      print("x: $lat y: $lon");
       setState(() {
-        _center = LatLng(x, y);
+        _center = LatLng(lat, lon);
       });
     });
 
   }
-
   double _Containerheight = 0;
   double _ProvidersContainerheight = 0;
+  double _ReviewContainerheight = 0;
+
   String MassageData = "";
   String NotificationBody = "";
   @override
   Widget build(BuildContext context) {
-    Color blue800 = Colors.blue.shade800;
 
 //     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
 //
@@ -238,40 +318,47 @@ class _HomeScreenState extends State<HomeScreen>{
                 ),
                 myLocationEnabled: true,
                 myLocationButtonEnabled: true,
-                padding: EdgeInsets.only(top: 15.0.h ,bottom: MediaQuery.of(context).size.height / 8),
+                compassEnabled: true,
+                padding: EdgeInsets.only(top: 5.0.h ,bottom: 6.0.h),
                 onTap: (click){
                   print(click);
                 },
                 trafficEnabled: true,
-
+                markers: _markers,
               ),
 
             ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                
-                Container(
-                        margin: EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(25),
-                            color: Colors.white
-                        ),
-                        child: Row(
-                          children: [ 
-                            Expanded(child: ElevatedButton(onPressed: (){
-                              setState(() {
-                                _Containerheight = 200;
-                              });
-                            }, child: Text("Wash Now"))),
-                            Expanded(child: ElevatedButton(onPressed: (){}, child: Text("Schedule Wash"))),
 
-                          ],
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                          color: Colors.transparent,
+
+                          padding: EdgeInsets.all(12),
+                          child: Row(
+                            children: [
+                              Expanded(child: ElevatedButton(onPressed: (){
+                                setState(() {
+                                  _Containerheight = 200;
+                                });
+                              }, child: Text("Wash Now"),style: ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(25)
+                                )
+                              ),)),
+                              SizedBox(width: 10,),
+                              Expanded(child: ElevatedButton(onPressed: (){}, child: Text("Schedule Wash"),style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(25)
+                                  ),
+
+                              ))),
+
+                            ],
+                          ),
                         ),
-                      ),
-                  
-              ],
             ),
+
             Align(
               alignment: Alignment.bottomCenter,
               child: AnimatedContainer(
@@ -307,8 +394,13 @@ class _HomeScreenState extends State<HomeScreen>{
                               onTap: (){
                                 setState(() {
                                   _Containerheight =0;
-                                  _ProvidersContainerheight = 500;
+                                  getOnlineProviders(_services[index]["id"]).then((value){
+                                    _ProvidersContainerheight = 500;
+                                  });
+
+
                                 });
+
                               },
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -343,48 +435,82 @@ class _HomeScreenState extends State<HomeScreen>{
                     color: Colors.white
                 ),
                 padding: EdgeInsets.all(12),
-                child:ListView.builder(
-                        itemCount: _services.length,
-                        itemBuilder: (BuildContext context, int index){
-                          return GestureDetector(
-                              onTap: (){
-                                setState(() {
-                                  _ProvidersContainerheight = 0;
-                                });
-                              },
-                              child: Card(
-                                elevation: 10,
-                                color: Colors.green,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.only(bottomRight: Radius.circular(25))
-                                ),
-                                margin: EdgeInsets.symmetric(vertical: 10),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 20),
-                                  child: Row(
-
-                                    children: [
-                                      Icon(Icons.account_circle_rounded,size: 50,),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text("mohammed"),
-                                          Text("Price : 25 AED", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),)
-                                        ],
-                                      ),
-                                      Expanded(child: Rating(value: 3.5,))
-
-                                    ],
-                                  ),
-                                ),
-                              )
-                            );
-
-                        },
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text("Service Name: ", style: TextStyle(
+                            fontSize: 15
+                          ),),
+                          Text("Car Wash",style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15
+                          ),)
+                        ],
                       ),
+                    ),
+                    SizedBox(height: 10,),
+                    Expanded(child: ProvidersList(onlineProviders)),
+                  ],
+                )
 
               ),
-            )
+            ),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: AnimatedContainer(
+                duration: new Duration(milliseconds: 1000),
+                curve: Curves.fastOutSlowIn,
+                height: _ReviewContainerheight,
+                width: double.infinity,
+
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.only(topLeft: Radius.circular(25),topRight: Radius.circular(25)),
+                    color: Colors.white
+                ),
+                padding: EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: (){},
+                          child: Text("Done"),
+                        )
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Icon(Icons.star_border,size: MediaQuery.of(context).size.width / 7,),
+                        Icon(Icons.star_border,size: MediaQuery.of(context).size.width / 7),
+                        Icon(Icons.star_border,size: MediaQuery.of(context).size.width / 7),
+                        Icon(Icons.star_border,size: MediaQuery.of(context).size.width / 7),
+                        Icon(Icons.star_border,size: MediaQuery.of(context).size.width / 7),
+
+                      ],
+                    ),
+                    SizedBox(height: 20,),
+                    Text("Comment"),
+                    Expanded(
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: "Your Comment of the service",
+
+                        ),
+                        maxLines: 20,
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ),
+
             // AnimatedContainer(
             //   height: _height,
             //   width: double.infinity,

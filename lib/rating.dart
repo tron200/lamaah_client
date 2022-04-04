@@ -9,7 +9,6 @@ class Rating extends StatelessWidget{
   Widget build(BuildContext context) {
     // TODO: implement build
     return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
       children: [
         Icon(value >= 1? Icons.star: value >= 0.5?Icons.star_half: Icons.star_border, color: Colors.yellowAccent,),
         Icon(value >= 2? Icons.star: value >= 1.5?Icons.star_half: Icons.star_border, color: Colors.yellowAccent,),
